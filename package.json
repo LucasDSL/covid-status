@@ -25,6 +25,7 @@
     "@nestjs/core": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
     "@types/node-cron": "^3.0.1",
+    "csv": "^6.0.5",
     "isomorphic-fetch": "^3.0.0",
     "node-cron": "^3.0.0",
     "reflect-metadata": "^0.1.13",
