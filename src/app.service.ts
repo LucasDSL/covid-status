@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { schedule } from 'node-cron';
 import { stringify } from 'csv-stringify';
 import * as fs from 'fs';
-import * as path from 'path';
+import FormData from 'form-data';
+import axios from 'axios';
 import { CreateCountryDataDto } from './dto/createCountryData.dto';
 import 'isomorphic-fetch';
 
@@ -13,13 +15,14 @@ export class AppService {
   async runRoutine(): Promise<void> {
     // Everyday at 10:30 PM run the routine inside the brackets
     // 0 30 22 1/1 * *
-    schedule('*/15 * * * * *', async () => {
+    schedule('*/10 * * * * *', async () => {
       const data = await this.getCovidStatus(this.requiredCountriesId);
       const filteredData = this.mapCovidData(data);
       const timestamp = new Date().getTime();
       this.writePairOfCSV(filteredData, timestamp);
+      const formData = this.createFormDataWithFile(timestamp);
+      await this.sendFileToGoFile(formData);
       // Keep deletion at end of routine for perfomance
-      this.deletePairOfCSV(timestamp);
     });
   }
 
@@ -56,15 +59,26 @@ export class AppService {
     stringify(listData.slice(2, 4), { header: true }, (err, output) => {
       fs.writeFileSync(`./${timestamp}cn-ru-covid-status.csv`, output);
     });
-    console.log('createdFiles');
   }
 
   async deletePairOfCSV(timestamp: number) {
-    await fs.unlink(`./${timestamp}br-us-covid-status.csv`, (err) =>
-      console.log(err),
-    );
-    await fs.unlink(`./${timestamp}cn-ru-covid-status.csv`, (err) =>
-      console.log(err),
-    );
+    fs.unlinkSync(`./${timestamp}br-us-covid-status.csv`);
+    fs.unlinkSync(`./${timestamp}cn-ru-covid-status.csv`);
+  }
+
+  createFormDataWithFile(timestamp: number): FormData {
+    const formData = new FormData();
+    const file = fs.createReadStream(`./${timestamp}br-us-covid-status.csv`);
+    formData.append('file', file);
+    formData.append('token', process.env.goFileKey);
+    formData.append('folderId', process.env.covid_status_folder_id);
+    console.log('form created!');
+    return formData;
+  }
+
+  async sendFileToGoFile(formData: FormData) {
+    await axios.post(`https://store4.gofile.io/uploadFile`, formData, {
+      headers: formData.getHeaders(),
+    });
   }
 }
