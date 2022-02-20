@@ -1,16 +1,16 @@
 export class CreateCountryDataDto {
-  pais: string;
-  casosHoje: number;
-  mortesHoje: number;
+  'país': string;
+  'casos hoje': number;
+  'mortes hoje': number;
   data: string;
-  casosAtivos: number;
-  casosCriticos: number;
+  'casos ativos': number;
+  'casos críticos': number;
   constructor(countryData) {
-    this.pais = countryData.country;
-    this.casosHoje = countryData.todayCases;
-    this.mortesHoje = countryData.todayDeaths;
+    this['país'] = countryData.country;
+    this['casos hoje'] = countryData.todayCases;
+    this['mortes hoje'] = countryData.todayDeaths;
     this.data = new Date().toLocaleDateString('pt-BR');
-    this.casosAtivos = countryData.active;
-    this.casosCriticos = countryData.critical;
+    this['casos ativos'] = countryData.active;
+    this['casos críticos'] = countryData.critical;
   }
 }

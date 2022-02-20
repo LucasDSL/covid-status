@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
-import { schedule } from 'node-cron';
+import * as path from 'path';
 import { stringify } from 'csv-stringify';
 import * as fs from 'fs';
 import * as FormData from 'form-data';
@@ -11,23 +11,6 @@ import 'isomorphic-fetch';
 @Injectable()
 export class AppService {
   requiredCountriesId: string[] = ['br', 'us', 'cn', 'ru'];
-
-  async runRoutine(): Promise<void> {
-    // Everyday at 10:30 PM run the routine inside the brackets
-    // 0 30 22 1/1 * *
-    schedule('*/10 * * * * *', async () => {
-      const data = await this.getCovidStatus(this.requiredCountriesId);
-      const filteredData = this.mapCovidData(data);
-      const timestamp = new Date().getTime();
-      this.writePairOfCSV(filteredData, timestamp);
-      const formData = this.createFormDataWithFile(timestamp);
-      console.log(formData);
-      await this.sendFileToGoFile(formData);
-      console.log('sent files');
-      // Keep deletion at end of routine for perfomance
-      this.deletePairOfCSV(timestamp);
-    });
-  }
 
   formatListOfCountriesToURI(countries: string[]): string {
     let listByComma = '';
@@ -52,41 +35,47 @@ export class AppService {
     return mappedData;
   }
 
-  writePairOfCSV(listData: CreateCountryDataDto[], timestamp: number) {
-    stringify(listData.slice(0, 2), { header: true }, (err, output) => {
-      fs.writeFileSync(`./br-us-covid-status.csv`, output);
+  writePairOfCSV(data: object[]) {
+    const mappedData = this.mapCovidData(data);
+
+    stringify(mappedData.slice(2, 4), { header: true }, (err, output) => {
+      fs.writeFileSync(path.join(__dirname, `cnRuStatus.csv`), output);
     });
 
-    stringify(listData.slice(2, 4), { header: true }, (err, output) => {
-      fs.writeFileSync(`./cn-ru-covid-status.csv`, output);
+    stringify(mappedData.slice(0, 2), { header: true }, (err, output) => {
+      fs.writeFileSync(path.join(__dirname, `brUsStatus.csv`), output);
     });
   }
 
-  async deletePairOfCSV(timestamp: number) {
-    fs.unlinkSync(`./${timestamp}br-us-covid-status.csv`);
-    fs.unlinkSync(`./${timestamp}cn-ru-covid-status.csv`);
+  async deletePairOfCSV() {
+    fs.unlinkSync(path.join(__dirname, `brUsStatus.csv`));
+    fs.unlinkSync(path.join(__dirname, `cnRuStatus.csv`));
   }
 
-  createFormDataWithFile(timestamp: number): FormData {
+  createFormDataWithFile(option: string): FormData {
     const formData = new FormData();
-    const file = fs.createReadStream(`./${timestamp}br-us-covid-status.csv`);
-    console.log(file);
+    let file;
+    if (option == 'brus') {
+      file = fs.createReadStream(path.join(__dirname, `brUsStatus.csv`));
+    } else {
+      file = fs.createReadStream(path.join(__dirname, `cnRuStatus.csv`));
+    }
     formData.append('file', file);
     formData.append('token', process.env.go_file_key);
     formData.append('folderId', process.env.covid_status_folder_id);
     return formData;
   }
 
-  sendFileToGoFile(formData: FormData) {
-    axios
-      .get('https://api.gofile.io/getServer')
-      .then(async (response) => {
-        const server = response['data']['server'];
-        console.log(server);
-        await axios.post(`https://store2.gofile.io/uploadFile`, formData, {
-          headers: formData.getHeaders(),
-        });
-      })
-      .catch((error) => console.log(error));
+  async sendFileToGoFile(formData: FormData) {
+    try {
+      const response = await axios.get('https://api.gofile.io/getServer');
+      const server = await response['data']['data']['server'];
+
+      await axios.post(`https://${server}.gofile.io/uploadFile`, formData, {
+        headers: formData.getHeaders(),
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
