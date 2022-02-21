@@ -6,6 +6,6 @@ dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(3000, async () => await new AppService().runRoutine());
+  await app.listen(3000);
 }
 bootstrap();
