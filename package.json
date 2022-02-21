@@ -24,6 +24,7 @@
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
+    "@nestjs/schedule": "^1.0.2",
     "@types/axios": "^0.14.0",
     "@types/form-data": "^2.5.0",
     "@types/node-cron": "^3.0.1",
