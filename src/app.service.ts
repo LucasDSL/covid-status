@@ -35,31 +35,23 @@ export class AppService {
     return mappedData;
   }
 
-  writePairOfCSV(data: object[]) {
+  async writeFile(data: object[], filename: string) {
     const mappedData = this.mapCovidData(data);
 
-    stringify(mappedData.slice(2, 4), { header: true }, (err, output) => {
-      fs.writeFileSync(path.join(__dirname, `cnRuStatus.csv`), output);
-    });
-
-    stringify(mappedData.slice(0, 2), { header: true }, (err, output) => {
-      fs.writeFileSync(path.join(__dirname, `brUsStatus.csv`), output);
+    stringify(mappedData, { header: true }, (err, output) => {
+      fs.writeFileSync(path.join(__dirname, filename), output);
     });
   }
 
-  async deletePairOfCSV() {
-    fs.unlinkSync(path.join(__dirname, `brUsStatus.csv`));
-    fs.unlinkSync(path.join(__dirname, `cnRuStatus.csv`));
+  async deleteFiles(files: string[]) {
+    files.forEach((file) => {
+      fs.unlinkSync(path.join(__dirname, file));
+    });
   }
 
-  createFormDataWithFile(option: string): FormData {
+  createFormDataWithFile(fileName: string): FormData {
     const formData = new FormData();
-    let file;
-    if (option == 'brus') {
-      file = fs.createReadStream(path.join(__dirname, `brUsStatus.csv`));
-    } else {
-      file = fs.createReadStream(path.join(__dirname, `cnRuStatus.csv`));
-    }
+    const file = fs.createReadStream(path.join(__dirname, fileName));
     formData.append('file', file);
     formData.append('token', process.env.go_file_key);
     formData.append('folderId', process.env.covid_status_folder_id);

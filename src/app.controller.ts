@@ -7,21 +7,21 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
   private readonly requiredCountriesId: string[] = ['br', 'us', 'cn', 'ru'];
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async schedule() {
     const data = await this.appService.getCovidStatus(this.requiredCountriesId);
+    const countries = await data['data'];
+    const fileNames = ['brUsCovidStatus.csv', 'cnRuCovidStatus.csv'];
+    // Brazil and Us file
+    this.appService.writeFile(await countries.slice(0, 2), fileNames[0]);
+    const formBRUS = this.appService.createFormDataWithFile(fileNames[0]);
+    await this.appService.sendFileToGoFile(formBRUS);
 
-    this.appService.writePairOfCSV(data['data']);
+    // China and Russia file
+    this.appService.writeFile(await countries.slice(2, 4), fileNames[1]);
+    const formCNRU = this.appService.createFormDataWithFile(fileNames[1]);
+    await this.appService.sendFileToGoFile(formCNRU);
 
-    console.log('writed files');
-
-    let form = this.appService.createFormDataWithFile('brus');
-    await this.appService.sendFileToGoFile(form);
-
-    form = this.appService.createFormDataWithFile('cnru');
-    await this.appService.sendFileToGoFile(form);
-
-    await this.appService.deletePairOfCSV();
-    console.log('done');
+    await this.appService.deleteFiles(fileNames);
   }
 }
