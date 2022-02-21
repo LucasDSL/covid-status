@@ -35,7 +35,7 @@ export class AppService {
     return mappedData;
   }
 
-  async writeFile(data: object[], filename: string) {
+  async XwriteFile(data: object[], filename: string) {
     const mappedData = this.mapCovidData(data);
 
     stringify(mappedData, { header: true }, (err, output) => {
