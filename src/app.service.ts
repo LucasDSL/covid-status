@@ -5,6 +5,7 @@ import { stringify } from 'csv-stringify';
 import * as fs from 'fs';
 import * as FormData from 'form-data';
 import axios from 'axios';
+import readFile from './readFile.helper';
 import { CreateCountryDataDto } from './dto/createCountryData.dto';
 import 'isomorphic-fetch';
 
@@ -35,7 +36,7 @@ export class AppService {
     return mappedData;
   }
 
-  async XwriteFile(data: object[], filename: string) {
+  async writeFile(data: object[], filename: string) {
     const mappedData = this.mapCovidData(data);
 
     stringify(mappedData, { header: true }, (err, output) => {
@@ -49,16 +50,19 @@ export class AppService {
     });
   }
 
-  createFormDataWithFile(fileName: string): FormData {
+  async createFormDataWithFile(fileName: string) {
     const formData = new FormData();
-    const file = fs.createReadStream(path.join(__dirname, fileName));
-    formData.append('file', file);
-    formData.append('token', process.env.go_file_key);
-    formData.append('folderId', process.env.covid_status_folder_id);
-    return formData;
+    readFile({ filename: fileName, path: __dirname })
+      .then((fileData) => {
+        formData.append('file', fileData);
+        formData.append('token', process.env.go_file_key);
+        formData.append('folderId', process.env.covid_status_folder_id);
+        return formData;
+      })
+      .catch((error) => console.log(error));
   }
 
-  async sendFileToGoFile(formData: FormData) {
+  async sendFileToGoFile(formData) {
     try {
       const response = await axios.get('https://api.gofile.io/getServer');
       const server = await response['data']['data']['server'];
