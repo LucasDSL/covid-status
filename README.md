@@ -1,8 +1,8 @@
-<div style="align: center;"><h2>Covid Status Application</h2></div>
+<div align= "center";"><h2>Covid Status Application</h2></div>
 
-<div style="align: center;"><h2 >Tech used</h2></div>
+<div align= "center"><h2 >Tech used</h2></div>
 
-<div style="align: center;">
+<div align= "center">
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" width="60" />
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-plain.svg" width="60"/>
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nestjs/nestjs-plain-wordmark.svg" width="60"/>
