@@ -1,22 +1,54 @@
-<center><h2>Covid Status Application</h2>
+<center><h2 style="text-align: center;">Covid Status Application</h2>
 
-<h2>Tech used</h2> 
-<div>
+<h2 style="text-align: center;">Tech used</h2> 
+<div style="text-align: center;">
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" width="60" />
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-plain.svg" width="60"/>
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nestjs/nestjs-plain-wordmark.svg" width="60"/>
 </div>
 
-
 Application that gets data about covid on some countries from the [disease.sh covid data API](https://disease.sh/docs/#/), treat the data, create csv files locally with a pair of countries and send it to the cloud within the [GoFile](https://gofile.io/welcome), then deletes it locally, as shown by the following image. For more details, keep reading this README.
 
-
-
-<img src="./docs/controller.png">
 </center>
 
+```ts
+@Cron(CronExpression.EVERY_DAY_AT_11PM)
+  async writeFile() {
+    const data = await this.appService.getCovidStatus(this.requiredCountriesId);
+    const countriesData = await data['data'];
+    const files = ['brUsCovidStatus.csv 1', 'cnRuCovidStatus 2'];
+
+    files.forEach((file) => {
+      const fileInfo = file.split(' ');
+      let countries;
+      if (fileInfo[1] === '1') {
+        countries = countriesData.slice(0, 2);
+      } else {
+        countries = countriesData.slice(2, 4);
+      }
+      this.appService.writeFile(countries, fileInfo[0]);
+    });
+
+}
+
+// Five minutes later...
+@Cron('0 5 23 1/1 * *')
+async sendFilesCloud() {
+const files = ['brUsCovidStatus.csv', 'cnRuCovidStatus'];
+
+    files.forEach(async (file) => {
+      const form = await this.appService.createFormDataWithFile(file);
+      await this.appService.sendFileToGoFile(form);
+    });
+
+    await this.appService.deleteFiles(files);
+
+}
+
+```
+
 <center><h2>How it works</h2>
-Using Cron from '@nestjs/schedule', I stablish a routine that run every day at 11 PM, following the the order below: 
+Using Cron from '@nestjs/schedule', I stablish a routine that run every day at 11 PM, following the the order below:
 </center>
 
 <center><h2>Getting the data</h2>
@@ -62,3 +94,4 @@ At last, deleting the files locally so doesn't take much memory from our server.
 <img src="./docs/deleting_detailed.png">
 
 </center>
+```
