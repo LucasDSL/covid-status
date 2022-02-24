@@ -36,10 +36,10 @@ export class AppService {
     return mappedData;
   }
 
-  async writeFile(data: object[], filename: string) {
+  writeFile(data: object[], filename: string) {
     const mappedData = this.mapCovidData(data);
 
-    stringify(mappedData, { header: true }, (err, output) => {
+    return stringify(mappedData, { header: true }, (err, output) => {
       fs.writeFileSync(path.join(__dirname, filename), output);
     });
   }
@@ -52,14 +52,11 @@ export class AppService {
 
   async createFormDataWithFile(fileName: string) {
     const formData = new FormData();
-    readFile({ filename: fileName, path: __dirname })
-      .then((fileData) => {
-        formData.append('file', fileData);
-        formData.append('token', process.env.go_file_key);
-        formData.append('folderId', process.env.covid_status_folder_id);
-        return formData;
-      })
-      .catch((error) => console.log(error));
+    const file = await readFile(path.join(__dirname, fileName));
+    formData.append('file', file, { filename: fileName });
+    formData.append('token', process.env.go_file_key);
+    formData.append('folderId', process.env.covid_status_folder_id);
+    return formData;
   }
 
   async sendFileToGoFile(formData) {
