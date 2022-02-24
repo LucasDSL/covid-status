@@ -1,7 +1,8 @@
-<center><h2 style="text-align: center;">Covid Status Application</h2>
+<div style="align: center;"><h2>Covid Status Application</h2></div>
 
-<h2 style="text-align: center;">Tech used</h2> 
-<div style="text-align: center;">
+<div style="align: center;"><h2 >Tech used</h2></div>
+
+<div style="align: center;">
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" width="60" />
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-plain.svg" width="60"/>
 <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nestjs/nestjs-plain-wordmark.svg" width="60"/>
@@ -9,7 +10,7 @@
 
 Application that gets data about covid on some countries from the [disease.sh covid data API](https://disease.sh/docs/#/), treat the data, create csv files locally with a pair of countries and send it to the cloud within the [GoFile](https://gofile.io/welcome), then deletes it locally, as shown by the following image. For more details, keep reading this README.
 
-</center>
+</div>
 
 ```ts
 @Cron(CronExpression.EVERY_DAY_AT_11PM)
